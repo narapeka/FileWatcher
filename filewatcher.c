@@ -134,7 +134,7 @@ void send_http_request(const char *file_path, const char *server, const char *po
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
 
-        printf("[INFO] Sending HTTP request to %s with file path: %s\n", url, file_path);
+        fprintf(stderr, "[INFO] Sending HTTP request to %s with file path: %s\n", url, file_path);
 
         res = curl_easy_perform(curl);
 
@@ -144,7 +144,7 @@ void send_http_request(const char *file_path, const char *server, const char *po
         }
         else
         {
-            printf("[INFO] Successfully sent request to %s for file: %s\n", url, file_path);
+            fprintf(stderr, "[INFO] Successfully sent request to %s for file: %s\n", url, file_path);
         }
 
         curl_slist_free_all(headers);
@@ -236,7 +236,7 @@ void handle_events(int fanotify_fd, int read_threshold, const char *server, cons
                     // 判断文件是否已经读取到阈值
                     if (read_count >= read_threshold && !file_read)
                     {
-                        printf("[READ] File accessed: %s\n", resolved_path);
+                        fprintf(stderr, "[READ] File accessed: %s\n", resolved_path);
 
                         // 标记文件已读取，并停止再输出日志
                         file_read = 1;
@@ -283,19 +283,19 @@ int main(int argc, char *argv[])
     // 读取配置文件
     load_config(config_file, &read_threshold, server, port, paths_to_monitor, &path_count, file_extensions, &ext_count);
 
-    printf("Monitoring directories:\n");
+    fprintf(stderr, "Monitoring directories:\n");
     for (int i = 0; i < path_count; i++)
     {
-        printf(" - %s\n", paths_to_monitor[i]);
+        fprintf(stderr, " - %s\n", paths_to_monitor[i]);
     }
-    printf("Allowed file extensions:\n");
+    fprintf(stderr, "Allowed file extensions:\n");
     for (int i = 0; i < ext_count; i++)
     {
-        printf(" - %s\n", file_extensions[i]);
+        fprintf(stderr, " - %s\n", file_extensions[i]);
     }
-    printf("Read threshold: %d\n", read_threshold);
-    printf("HTTP Server: %s\n", server);
-    printf("HTTP Port: %s\n", port);
+    fprintf(stderr, "Read threshold: %d\n", read_threshold);
+    fprintf(stderr, "HTTP Server: %s\n", server);
+    fprintf(stderr, "HTTP Port: %s\n", port);
 
     // 初始化 fanotify
     fanotify_fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY | O_CLOEXEC);

@@ -43,7 +43,10 @@ FileWatcher 的配置文件为 `config.json`，位于 `/etc/filewatcher/` 目录
 
 ## 自动安装
 
-下载本项目所有文件，解压后执行install.sh
+- 下载本项目所有文件，解压
+- 修改配置文件内容
+- 执行install.sh
+
 ```bash
 sudo ./install.sh
 ```

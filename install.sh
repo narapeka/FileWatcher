@@ -10,6 +10,18 @@ fi
 echo "安装脚本正在执行..."
 echo "确保您已将编译好的二进制文件 (filewatcher) 放在当前目录中，并准备好配置文件。"
 
+# 清理旧版本
+echo "清理旧版本..."
+echo "停用系统服务..."
+sudo systemctl stop filewatcher
+sudo systemctl disable filewatcher
+sudo rm /etc/systemd/system/filewatcher.service
+echo "删除程序和配置文件..."
+sudo rm /usr/local/bin/filewatcher
+sudo rm -rf /etc/filewatcher
+echo "清理日志文件..."
+sudo rm /var/log/filewatcher.log
+
 # 定义依赖包
 DEPS=("libcurl4" "libjson-c-dev")
 
@@ -76,11 +88,12 @@ After=network.target
 ExecStart=/usr/local/bin/filewatcher /etc/filewatcher/config.json
 WorkingDirectory=/etc/filewatcher
 Restart=always
+StartLimitIntervalSec=0
+StartLimitBurst=1
 User=root
 Group=root
 StandardOutput=append:/var/log/filewatcher.log
 StandardError=append:/var/log/filewatcher.log
-SyslogIdentifier=filewatcher
 
 [Install]
 WantedBy=multi-user.target
@@ -104,6 +117,5 @@ echo "  查看服务状态：sudo systemctl status filewatcher"
 echo "  停止服务：sudo systemctl stop filewatcher"
 echo "  禁用开机启动：sudo systemctl disable filewatcher"
 echo "若遇到问题："
-echo "  查看实时日志：sudo journalctl -u filewatcher -f"
 echo "  查看所有日志：cat /var/log/filewatcher.log"
 
