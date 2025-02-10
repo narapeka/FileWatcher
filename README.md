@@ -70,10 +70,16 @@ sudo ./filewatcher config.json
 - **访问次数阈值**：fanotify模块在监测文件访问行为时，会有大量干扰，比如查看文件属性也视为多次读取。阈值的作用是仅当监测事件达到一定量级（默认50）的时候才视为真正读取。在不同系统和应用场景中，判定文件被真正读取的阈值可能不一样，请自行调试。
 - **权限要求**：FileWatcher 需要以 root 权限运行，因为它使用 fanotify 来监控文件访问事件。
 - **配置文件**：确保 config.json 文件中的路径和扩展名配置正确，否则可能导致监控失败。
-- **HTTP 服务器**：端点必须定义为 POST http://server:port/play
+
+## HTTP通知
+
+端点必须定义为 POST http://server:port/play
 ，程序发送的request body如下：
 ```json
 {
   "file_path": "path/to/file"
 }
 ```
+
+可参考BlurayPoster项目https://github.com/narapeka/BlurayPoster
+，该项目联动FileWatcher可实现自动调用蓝光机播放媒体文件。
