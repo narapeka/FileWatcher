@@ -56,7 +56,7 @@ sudo ./install.sh
 安装依赖
 ```bash
 sudo apt-get update
-sudo apt-get install -y libcurl4 libjson-c-dev
+sudo apt-get install -y build-essential libcurl4-openssl-dev libjson-c-dev
 ```
 编译
 ```bash
