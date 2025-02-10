@@ -1,0 +1,13 @@
+{
+    "path_to_monitor": [
+        "/volume1/cloud/115",
+        "/volume2/media"
+    ],
+    "file_extensions": [
+        ".iso",
+        ".m2ts"
+    ],
+    "read_threshold": 50,
+    "http_server": "192.168.1.50",
+    "http_port": "7507"
+}
