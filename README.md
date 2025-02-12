@@ -35,7 +35,7 @@ FileWatcher 的配置文件为 `config.json`，位于 `/etc/filewatcher/` 目录
         ".iso",
         ".m2ts"
     ],
-    "read_threshold": 35,
+    "read_threshold": 40,
     "http_server": "192.168.1.50",
     "http_port": "7507"
 }
