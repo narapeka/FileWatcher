@@ -22,7 +22,7 @@ FileWatcher 主要用于以下场景：
 
 ```bash
 sudo -i
-tar -xvf filewatcher-<version>.tar
+tar -xvf filewatcher-<version>.tar.gz
 cd filewatcher-<version>
 # 提前修改好配置文件config.json
 ./install.sh
