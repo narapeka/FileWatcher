@@ -51,7 +51,11 @@ jobs:
             -v $(pwd):/workspace \
             -w /workspace \
             arm64v8/gcc:latest \
-            bash -c "./filewatcher_arm64 /workspace/config.json"
+            bash -c "
+              apt-get update && apt-get install -y \
+                libjson-c5:arm64 \
+                libc6:arm64 \
+                && ./filewatcher_arm64 /workspace/config.json"
         env:
           CONFIG_PATH: /workspace/config.json  # Pass path to config.json if needed
 
