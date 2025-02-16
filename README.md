@@ -10,10 +10,25 @@ FileWatcher 主要用于以下场景：
 - **扩展名过滤**：支持根据文件扩展名过滤监控的文件类型。
 
 ## 适用环境
-- 理论上兼容各大Linux发行版本
+- 理论上兼容各大Linux发行版本，推荐Ubuntu/或者基于Debian的NAS系统比如群晖，绿联，飞牛
 - 项目默认提供的二进制文件基于Linux/amd64编译。如需运行在其他架构，请自行编译。
 
-## 配置说明
+## 安装与使用
+
+### 1. 安装
+- 下载本项目所有文件，解压
+- 修改配置文件内容
+- 执行install.sh
+
+```bash
+sudo -i
+tar -xvf filewatcher-<version>.tar
+cd filewatcher-<version>
+# 提前修改好配置文件config.json
+./install.sh
+```
+
+### 2. 配置说明
 
 FileWatcher 的配置文件为 `config.json`，位于 `/etc/filewatcher/` 目录下。配置文件包含以下字段：
 
@@ -40,18 +55,17 @@ FileWatcher 的配置文件为 `config.json`，位于 `/etc/filewatcher/` 目录
     "http_port": "7507"
 }
 ```
+### 3. 使用说明
+- 安装完成后，服务即启动并监控目录的访问事件。
+- 在刮削或者其他场景中，为避免误拉起蓝光机，可暂时停止监控服务。
+- 使用浏览器访问 http://服务器IP:7503 即可快捷开启/停止服务。
 
-## 自动安装
+### 4. 注意事项
+- **访问次数阈值**：fanotify模块在监测文件访问行为时，会有大量干扰，比如查看文件属性，预览文件等也会触发多次fanotify事件。阈值的作用是仅当监测事件达到一定量级（默认40）的时候才视为真正读取。在不同系统和应用场景中，判定文件被真正读取的阈值可能不一样，请自行结合日志输出的信息进行微调。
 
-- 下载本项目所有文件，解压
-- 修改配置文件内容
-- 执行install.sh
+## 面向开发者
 
-```bash
-sudo ./install.sh
-```
-
-## 编译安装
+### 编译安装
 
 安装依赖
 ```bash
@@ -69,20 +83,14 @@ gcc -o filewatcher filewatcher.c -lcurl -ljson-c
 sudo ./filewatcher config.json
 ```
 
-## 注意事项
-- **访问次数阈值**：fanotify模块在监测文件访问行为时，会有大量干扰，比如查看文件属性，预览文件等也会触发多次fanotify事件。阈值的作用是仅当监测事件达到一定量级（默认35）的时候才视为真正读取。在不同系统和应用场景中，判定文件被真正读取的阈值可能不一样，请自行调试。
-- **权限要求**：FileWatcher 需要以 root 权限运行，因为它使用 fanotify 来监控文件访问事件。
-- **配置文件**：确保 config.json 文件中的路径和扩展名配置正确，否则可能导致监控失败。
+### 如何接收FileWatcher发出的通知
 
-## HTTP通知
-
-端点必须定义为 POST http://server:port/play
-，程序发送的request body如下：
+端点必须定义为 POST [http://server:port/play](http://server:port/play)，程序发送的request body如下：
 ```json
 {
   "file_path": "path/to/file"
 }
 ```
 
-可参考BlurayPoster项目https://github.com/narapeka/BlurayPoster
-，该项目联动FileWatcher可实现自动调用蓝光机播放媒体文件。
+可参考[BlurayPoster项目](https://github.com/narapeka/BlurayPoster)
+，该项目联动FileWatcher实现自动调用蓝光机播放媒体文件。
