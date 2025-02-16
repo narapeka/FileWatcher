@@ -25,11 +25,10 @@ jobs:
 
       - name: Build ARM64 binary using Docker
         run: |
-          # Use a Docker container that emulates ARM64
-          docker buildx build --platform linux/arm64 \
+          # Use docker run with ARM64 emulation
+          docker run --rm --platform linux/arm64 \
             -v $(pwd):/workspace \
             -w /workspace \
-            --load \
             gcc:latest \
             bash -c "
               apt-get update && apt-get install -y \
