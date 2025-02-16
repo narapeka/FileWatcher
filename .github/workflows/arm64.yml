@@ -10,23 +10,32 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # or another environment if needed
+    runs-on: ubuntu-latest  # You can use an x86_64 machine to emulate ARM64
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Docker environment for ARM64 cross-compilation
+      - name: Set up Docker buildx for ARM64 emulation
         uses: docker/setup-buildx-action@v2
         
+      - name: Enable QEMU for ARM64 emulation
+        run: |
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
       - name: Build ARM64 binary using Docker
         run: |
-          # Set up a Docker container to emulate ARM64
-          docker run --rm --platform linux/arm64 \
+          # Use a Docker container that emulates ARM64
+          docker buildx build --platform linux/arm64 \
             -v $(pwd):/workspace \
             -w /workspace \
+            --load \
             gcc:latest \
-            bash -c "apt-get update && apt-get install -y build-essential libcurl4-openssl-dev libjson-c-dev && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c"
+            bash -c "
+              apt-get update && apt-get install -y \
+                libcurl4-openssl-dev:arm64 \
+                libjson-c-dev:arm64 \
+                && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c"
       
       - name: Upload ARM64 binary as artifact
         uses: actions/upload-artifact@v4
