@@ -16,7 +16,7 @@ FileWatcher 主要用于以下场景：
 ## 安装与使用
 
 ### 1. 安装
-- 下载本项目所有文件，解压
+- [点此下载](https://github.com/narapeka/FileWatcher/releases)本项目所有文件，解压
 - 修改配置文件内容
 - 执行install.sh
 
