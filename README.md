@@ -30,7 +30,7 @@ cd filewatcher-<version>
 
 ### 2. 配置说明
 
-FileWatcher 的配置文件为 `config.json`，位于 `/etc/filewatcher/` 目录下。配置文件包含以下字段：
+FileWatcher 的配置文件为 `config.json`，安装后位于 `/etc/filewatcher/` 目录下。配置文件包含以下字段：
 
 - `path_to_monitor`：需要监控的目录路径列表。可以指定多个目录。
 - `file_extensions`：需要监控的文件扩展名列表。如果未指定，则监控所有文件。
