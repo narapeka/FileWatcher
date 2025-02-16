@@ -33,12 +33,12 @@ jobs:
             bash -c "
               apt-get update && apt-get install -y \
                 qemu-user-static \
-                libc6:arm64 \
+                libc6-dev:arm64 \
                 libcurl4-openssl-dev:arm64 \
                 libjson-c-dev:arm64 \
                 libkrb5-dev:arm64 \
                 libgssapi-krb5-2:arm64 \
-                && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c -static -lkrb5 -lgssapi_krb5"
+                && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c -lkrb5 -lgssapi_krb5 -static"
       
       - name: Upload ARM64 binary as artifact
         uses: actions/upload-artifact@v4
