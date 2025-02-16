@@ -1,0 +1,29 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # 仅当推送带有标签的版本时触发（例如 v1.0.0）
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Step 2: Create a tarball of the source code
+      - name: Create tarball
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)  # 获取当前标签作为版本号
+          tar -cvf my-app-${VERSION}.tar.gz .  # 将整个代码库打包为tar.gz文件
+
+      # Step 3: Upload the tarball as a GitHub release asset
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: my-app-${VERSION}.tar.gz  # 上传创建的tar.gz文件
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 使用自动生成的GitHub令牌进行身份验证
