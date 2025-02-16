@@ -36,7 +36,7 @@ jobs:
                 libc6:arm64 \
                 libcurl4-openssl-dev:arm64 \
                 libjson-c-dev:arm64 \
-                && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c"
+                && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c -static"
       
       - name: Upload ARM64 binary as artifact
         uses: actions/upload-artifact@v4
