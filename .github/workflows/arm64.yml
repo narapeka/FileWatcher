@@ -37,7 +37,7 @@ jobs:
                 && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c"
       
       - name: Upload ARM64 binary as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: arm64-binary
           path: filewatcher_arm64
