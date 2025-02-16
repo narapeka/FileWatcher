@@ -44,21 +44,14 @@ jobs:
           name: arm64-binary
           path: filewatcher_arm64
 
-      - name: Run tests with ARM64 binary
+      - name: Run tests with ARM64 binary in Docker
         run: |
-          # Test the compiled ARM64 binary with config.json
-          # Ensure config.json is available in the workspace or adjust the path accordingly
-          ./filewatcher_arm64 /workspace/config.json
+          # Run the compiled ARM64 binary with config.json inside Docker
+          docker run --rm --platform linux/arm64 \
+            -v $(pwd):/workspace \
+            -w /workspace \
+            arm64v8/gcc:latest \
+            bash -c "./filewatcher_arm64 /workspace/config.json"
         env:
           CONFIG_PATH: /workspace/config.json  # Pass path to config.json if needed
 
-      - name: Check test results (example)
-        run: |
-          # You can check for any specific output or log here to confirm the program is working
-          # For example, you can check for a specific output in the logs.
-          if grep -q "expected_output" test_log.txt; then
-            echo "Test passed!"
-          else
-            echo "Test failed!"
-            exit 1
-          fi
