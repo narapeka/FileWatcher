@@ -34,6 +34,7 @@ jobs:
               apt-get update && apt-get install -y \
                 libcurl4-openssl-dev:arm64 \
                 libjson-c-dev:arm64 \
+                libc6:arm64 \
                 && gcc -o filewatcher_arm64 filewatcher.c -lcurl -ljson-c"
       
       - name: Upload ARM64 binary as artifact
