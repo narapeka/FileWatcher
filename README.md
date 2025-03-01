@@ -69,7 +69,22 @@ FileWatcher 的配置文件为 `config.json`，安装后位于 `/etc/filewatcher
 ### 3. 使用说明
 - 安装完成后，服务即启动并监控目录的访问事件。
 - 在刮削或者其他场景中，为避免误拉起蓝光机，可暂时停止监控服务。
-- 使用浏览器访问 http://服务器IP:7503 即可快捷开启/停止服务。
+- **使用浏览器访问 http://服务器IP:7503 即可快捷开启/停止服务。**
+- 遇到问题可首先查看日志，参见install脚本给出的提示：
+
+```bash
+# 完成提示
+echo "可以使用以下命令来管理服务："
+echo "  启动 filewatcher 服务：sudo systemctl start filewatcher"
+echo "  查看 filewatcher 服务状态：sudo systemctl status filewatcher"
+echo "  停止 filewatcher 服务：sudo systemctl stop filewatcher"
+echo "  禁用开机启动：sudo systemctl disable filewatcher"
+echo "也可以使用简易web界面来管理服务："
+echo "  手机浏览器打开 http://<ip>:7503 "
+echo "  建议保存为桌面快捷方式，方遍调用。"
+echo "若遇到问题："
+echo "  查看日志：cat /var/log/filewatcher.log"
+```
 
 ### 4. 注意事项
 - **访问次数阈值**：fanotify模块在监测文件访问行为时，会有大量干扰，比如查看文件属性，预览文件等也会触发多次fanotify事件。阈值的作用是仅当监测事件达到一定量级（默认40）的时候才视为真正读取。在不同系统和应用场景中，判定文件被真正读取的阈值可能不一样，请自行结合日志输出的信息进行微调。
