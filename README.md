@@ -22,10 +22,21 @@ FileWatcher 主要用于以下场景：
 
 ```bash
 sudo -i
+
+# 解压缩
 tar -xvf filewatcher-<version>.tar.gz
 cd filewatcher-<version>
-# 提前修改好配置文件config.json
+
+# 安装python依赖
+pip install flask
+# 如果报错，则执行
+apt install python3-flask
+
+# 用文本编辑器修改好配置文件config.json的内容
+
+# 修改完后，执行安装脚本
 ./install.sh
+
 ```
 
 ### 2. 配置说明
