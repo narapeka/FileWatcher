@@ -142,7 +142,7 @@ Description=FWControl 服务
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/fwcontrol.py
+ExecStart=/usr/bin/python3 /usr/local/bin/fwcontrol.py
 WorkingDirectory=/usr/local/bin
 Restart=always
 StartLimitIntervalSec=0
