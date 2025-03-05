@@ -13,10 +13,21 @@
 #include <json-c/json.h>
 
 #define BUF_SIZE 8192
-#define DEFAULT_READ_THRESHOLD 50 // 默认连续访问 30 次判定为读取
+#define DEFAULT_READ_THRESHOLD 50
 #define DEFAULT_HTTP_SERVER "192.168.1.100"
 #define DEFAULT_HTTP_PORT "8080"
 #define DEFAULT_PATH_TO_MONITOR "/mnt/media"
+#define BD_SUFFIX ".bluray"
+#define BD_SUFFIX_LEN (sizeof(BD_SUFFIX) - 1)
+#define MAX_BD_PATH_LEN (PATH_MAX - BD_SUFFIX_LEN)
+
+// 状态结构体
+typedef struct
+{
+    char path[PATH_MAX];
+    int read_count;
+    int request_sent;
+} FileState;
 
 // **读取 JSON 配置文件**
 void load_config(const char *config_file, int *read_threshold, char *server, char *port, char paths_to_monitor[][PATH_MAX], int *path_count, char file_extensions[][16], int *ext_count)
@@ -177,15 +188,35 @@ int has_valid_extension(const char *file_path, char file_extensions[][16], int e
     return 0; // 没有匹配的扩展名
 }
 
-// **处理 fanotify 事件**
+// 获取 BD 根路径
+int get_bd_root_path(const char *file_path, char *bd_root_path, size_t bd_root_size)
+{
+    char *bdmv_pos = strstr(file_path, "BDMV");
+    if (bdmv_pos == NULL)
+        return 0;
+
+    size_t root_len = bdmv_pos - file_path;
+    if (root_len >= MAX_BD_PATH_LEN || root_len >= bd_root_size)
+    {
+        fprintf(stderr, "[ERROR] BD root path too long: %s\n", file_path);
+        return 0;
+    }
+
+    strncpy(bd_root_path, file_path, root_len);
+    bd_root_path[root_len] = '\0';
+    if (bd_root_path[root_len - 1] != '/')
+        strcat(bd_root_path, "/");
+    return 1;
+}
+
+// 处理事件
 void handle_events(int fanotify_fd, int read_threshold, const char *server, const char *port, char file_extensions[][16], int ext_count)
 {
     char buf[BUF_SIZE];
     ssize_t len;
     struct fanotify_event_metadata *metadata;
-    char current_file[PATH_MAX] = {0};
-    int read_count = 0;
-    int file_read = 0;
+    FileState bd_state = {{0}, 0, 0};   // BD rip 状态
+    FileState file_state = {{0}, 0, 0}; // 单文件状态
 
     while (1)
     {
@@ -193,25 +224,19 @@ void handle_events(int fanotify_fd, int read_threshold, const char *server, cons
         if (len == -1)
         {
             if (errno == EAGAIN)
-            {
                 continue;
-            }
             perror("read");
             break;
         }
-
         if (len <= 0)
-        {
-            printf("No events to read.\n");
             continue;
-        }
 
         metadata = (struct fanotify_event_metadata *)buf;
-
         while (FAN_EVENT_OK(metadata, len))
         {
             if (metadata->fd >= 0)
             {
+
                 char path[PATH_MAX];
                 char resolved_path[PATH_MAX] = {0};
 
@@ -221,30 +246,58 @@ void handle_events(int fanotify_fd, int read_threshold, const char *server, cons
                 {
                     resolved_path[sizeof(resolved_path) - 1] = '\0';
 
-                    // 如果是新文件，重置读取计数
-                    if (strcmp(resolved_path, current_file) != 0)
+                    // 只处理符合扩展名的文件
+                    if (has_valid_extension(resolved_path, file_extensions, ext_count))
                     {
-                        strcpy(current_file, resolved_path);
-                        read_count = 1;
-                        file_read = 0;
-                    }
-                    else
-                    {
-                        read_count++;
-                    }
+                        // 检查是否为 BD rip
+                        char temp_bd_path[PATH_MAX] = {0};
+                        int is_bd_rip = get_bd_root_path(resolved_path, temp_bd_path, sizeof(temp_bd_path));
 
-                    // 判断文件是否已经读取到阈值
-                    if (read_count >= read_threshold && !file_read)
-                    {
-                        fprintf(stderr, "[READ] File accessed: %s\n", resolved_path);
-
-                        // 标记文件已读取，并停止再输出日志
-                        file_read = 1;
-
-                        // 发送 HTTP 请求
-                        if (has_valid_extension(resolved_path, file_extensions, ext_count))
+                        if (is_bd_rip)
                         {
-                            send_http_request(resolved_path, server, port);
+                            // BD rip 处理
+                            if (strcmp(bd_state.path, temp_bd_path) != 0)
+                            {
+                                // 新 BD rip，重置状态
+                                strcpy(bd_state.path, temp_bd_path);
+                                bd_state.read_count = 0;
+                                bd_state.request_sent = 0;
+                            }
+
+                            if (!bd_state.request_sent)
+                            {
+                                bd_state.read_count++;
+                                if (bd_state.read_count >= read_threshold)
+                                {
+                                    char request_path[PATH_MAX + BD_SUFFIX_LEN + 1];
+                                    snprintf(request_path, sizeof(request_path), "%s%s", bd_state.path, BD_SUFFIX);
+                                    fprintf(stderr, "[READ] BD rip accessed: %s\n", resolved_path);
+                                    send_http_request(request_path, server, port);
+                                    bd_state.request_sent = 1;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // 单文件处理
+                            if (strcmp(file_state.path, resolved_path) != 0)
+                            {
+                                // 新文件，重置状态
+                                strcpy(file_state.path, resolved_path);
+                                file_state.read_count = 0;
+                                file_state.request_sent = 0;
+                            }
+
+                            if (!file_state.request_sent)
+                            {
+                                file_state.read_count++;
+                                if (file_state.read_count >= read_threshold)
+                                {
+                                    fprintf(stderr, "[READ] File accessed: %s\n", resolved_path);
+                                    send_http_request(resolved_path, server, port);
+                                    file_state.request_sent = 1;
+                                }
+                            }
                         }
                     }
                 }
@@ -253,15 +306,14 @@ void handle_events(int fanotify_fd, int read_threshold, const char *server, cons
                     perror("readlink");
                     fprintf(stderr, "Failed to resolve path for fd: %d\n", metadata->fd);
                 }
-
                 close(metadata->fd);
             }
-
             metadata = FAN_EVENT_NEXT(metadata, len);
         }
     }
 }
 
+// 主程序
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -288,14 +340,8 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, " - %s\n", paths_to_monitor[i]);
     }
-    fprintf(stderr, "Allowed file extensions:\n");
-    for (int i = 0; i < ext_count; i++)
-    {
-        fprintf(stderr, " - %s\n", file_extensions[i]);
-    }
     fprintf(stderr, "Read threshold: %d\n", read_threshold);
-    fprintf(stderr, "HTTP Server: %s\n", server);
-    fprintf(stderr, "HTTP Port: %s\n", port);
+
 
     // 初始化 fanotify
     fanotify_fd = fanotify_init(FAN_CLASS_NOTIF, O_RDONLY | O_CLOEXEC);
@@ -308,7 +354,7 @@ int main(int argc, char *argv[])
     // 监控多个目录
     for (int i = 0; i < path_count; i++)
     {
-        if (fanotify_mark(fanotify_fd, FAN_MARK_ADD | FAN_MARK_MOUNT, FAN_ACCESS | FAN_OPEN, AT_FDCWD, paths_to_monitor[i]) == -1)
+        if (fanotify_mark(fanotify_fd, FAN_MARK_ADD | FAN_MARK_MOUNT, FAN_ACCESS, AT_FDCWD, paths_to_monitor[i]) == -1)
         {
             perror("fanotify_mark");
             close(fanotify_fd);

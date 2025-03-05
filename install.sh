@@ -46,7 +46,7 @@ echo "清理日志文件..."
 [ -f /var/log/fwcontrol.log ] && sudo rm /var/log/fwcontrol.log
 
 # 定义依赖包
-DEPS=("libcurl4" "libjson-c-dev")
+DEPS=("libcurl4" "libjson-c-dev" "logrotate")
 
 # 检测包管理器并安装依赖
 echo "检测系统包管理器并安装依赖包..."
@@ -105,6 +105,24 @@ sudo cp config.json /etc/filewatcher/
 echo "创建日志文件/var/log/..."
 sudo touch /var/log/filewatcher.log
 sudo touch /var/log/fwcontrol.log
+sudo chmod 644 /var/log/filewatcher.log
+sudo chmod 644 /var/log/fwcontrol.log
+
+# 创建 logrotate 配置文件
+LOGROTATE_FILE="/etc/logrotate.d/filewatcher"
+echo "正在创建 logrotate 配置文件：$LOGROTATE_FILE..."
+sudo bash -c "cat > $LOGROTATE_FILE" <<EOF
+/var/log/filewatcher.log /var/log/fwcontrol.log {
+    daily
+    rotate 3
+    compress
+    missingok
+    notifempty
+    size 1M
+    create 644 root root
+}
+EOF
+sudo chmod 644 $LOGROTATE_FILE
 
 # 创建 filewatcher systemd 服务文件
 SERVICE_FILE="/etc/systemd/system/filewatcher.service"
