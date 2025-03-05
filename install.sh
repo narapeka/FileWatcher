@@ -133,13 +133,13 @@ sudo bash -c "cat > $SERVICE_FILE" <<EOF
 [Unit]
 Description=FileWatcher 服务
 After=network.target
+StartLimitIntervalSec=0
+StartLimitBurst=1
 
 [Service]
 ExecStart=/usr/local/bin/filewatcher /etc/filewatcher/config.json
 WorkingDirectory=/etc/filewatcher
 Restart=always
-StartLimitIntervalSec=0
-StartLimitBurst=1
 User=root
 Group=root
 StandardOutput=append:/var/log/filewatcher.log
@@ -158,13 +158,13 @@ sudo bash -c "cat > $FWCONTROL_SERVICE_FILE" <<EOF
 [Unit]
 Description=FWControl 服务
 After=network.target
+StartLimitIntervalSec=0
+StartLimitBurst=1
 
 [Service]
 ExecStart=/usr/bin/python3 /usr/local/bin/fwcontrol.py
 WorkingDirectory=/usr/local/bin
 Restart=always
-StartLimitIntervalSec=0
-StartLimitBurst=1
 User=root
 Group=root
 StandardOutput=append:/var/log/fwcontrol.log
